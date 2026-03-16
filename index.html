@@ -6,6 +6,7 @@
     <title>Debt Payoff Calculator - Hey Kay Budgets</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -502,15 +503,78 @@
         function exportData() {
             var rows = document.querySelectorAll('#debt-rows tr');
             if (!rows.length) { alert('No data to export.'); return; }
-            var csv = 'Debt Name,Balance ($),Interest Rate (%),Min Payment ($),Extra Payment ($)\n';
-            rows.forEach(function(row) {
-                var ins = row.querySelectorAll('input');
-                csv += '"'+ins[0].value+'","'+ins[1].value+'","'+ins[2].value+'","'+ins[3].value+'","'+ins[4].value+'"\n';
+            var sym = getSym();
+            var debts = [];
+            rows.forEach(function(row, idx) {
+                var ins  = row.querySelectorAll('input');
+                var name = ins[0].value.trim() || ('Debt ' + (idx + 1));
+                var bal  = parseFloat(ins[1].value) || 0;
+                var rate = parseFloat(ins[2].value) || 0;
+                var min  = parseFloat(ins[3].value) || 0;
+                var ext  = parseFloat(ins[4].value) || 0;
+                debts.push({ name:name, bal:bal, rate:rate, min:min, ext:ext });
             });
-            var a = document.createElement('a');
-            a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-            a.download = 'debt_payoff_data.csv';
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            if (!debts.length) { alert('No debt data to export.'); return; }
+
+            var wb = XLSX.utils.book_new();
+
+            /* ── Summary Sheet ── */
+            var summaryRows = [
+                ['Hey Kay Budgets — Debt Payoff Report'],
+                ['Generated: ' + new Date().toLocaleDateString()],
+                [],
+                ['Debt Name','Starting Balance','Interest Rate (%)','Min Payment','Extra Payment',
+                 'Total Interest Paid','Total Amount Paid','Payoff (No Extra) Months','Payoff (w/ Extra) Months','Months Saved']
+            ];
+
+            debts.forEach(function(d, i) {
+                try {
+                    var res     = amort(d);
+                    var totInt  = r2(res.sc.reduce(function(a,r){return a+r.i;},0));
+                    var totPaid = r2(res.sc.reduce(function(a,r){return a+r.pay;},0));
+                    summaryRows.push([
+                        d.name, d.bal, d.rate, d.min, d.ext,
+                        totInt, totPaid,
+                        res.origM || res.mo, res.mo, Math.max(res.saved, 0)
+                    ]);
+
+                    /* ── Per-Debt Amortization Sheet ── */
+                    var sheetRows = [
+                        ['Hey Kay Budgets — ' + d.name + ' Amortization Schedule'],
+                        [],
+                        ['Debt Name',         d.name],
+                        ['Starting Balance',  d.bal],
+                        ['Interest Rate (%)', d.rate],
+                        ['Minimum Payment',   d.min],
+                        ['Extra Payment',     d.ext],
+                        ['Total Interest',    totInt],
+                        ['Total Paid',        totPaid],
+                        ['Months to Payoff',  res.mo],
+                        ['Years to Payoff',   res.yr],
+                        ['Months Saved',      Math.max(res.saved,0)],
+                        [],
+                        ['Month','Payment','Interest','Principal','Remaining Balance']
+                    ];
+                    res.sc.forEach(function(r) {
+                        sheetRows.push([r.m, r.pay, r.i, r.p, r.bal]);
+                    });
+                    sheetRows.push([]);
+                    sheetRows.push(['TOTALS', totPaid, totInt, d.bal, 0]);
+
+                    var sname = d.name.replace(/[:\\\/\?\*\[\]]/g,'').substring(0,31) || ('Debt'+(i+1));
+                    var ws = XLSX.utils.aoa_to_sheet(sheetRows);
+                    ws['!cols'] = [{wch:8},{wch:12},{wch:12},{wch:12},{wch:18}];
+                    XLSX.utils.book_append_sheet(wb, ws, sname);
+                } catch(e) {
+                    summaryRows.push([d.name, d.bal, d.rate, d.min, d.ext, 'Error: '+e.message]);
+                }
+            });
+
+            var wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+            wsSummary['!cols'] = [{wch:20},{wch:16},{wch:16},{wch:14},{wch:14},{wch:20},{wch:18},{wch:24},{wch:24},{wch:14}];
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+            XLSX.writeFile(wb, 'HeyKay_Debt_Payoff_Report.xlsx');
         }
 
         function amort(d) {

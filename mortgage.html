@@ -6,6 +6,7 @@
     <title>Mortgage Calculator - Hey Kay Budgets</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -103,6 +104,19 @@
             text-align: center; color: var(--text-muted);
             font-size: 0.9rem; margin-bottom: 30px;
         }
+
+        /* ── Export Btn ── */
+        .sec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .btn-export {
+            background: linear-gradient(135deg, #00954a, #00c96a);
+            color: #fff; border: none;
+            padding: 8px 18px; border-radius: 9px;
+            cursor: pointer; font-size: 0.82rem; font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 16px rgba(0,201,106,0.28);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-export:hover { transform: translateY(-1px); box-shadow: 0 7px 22px rgba(0,201,106,0.45); }
 
         /* ── Nav ── */
         .nav-wrap { text-align: center; margin-bottom: 30px; }
@@ -356,7 +370,10 @@
             </div>
 
             <div class="glass-card">
-                <div class="sec-title">Loan Details</div>
+                <div class="sec-header">
+                    <div class="sec-title">Loan Details</div>
+                    <button class="btn-export" onclick="exportData()">&#11015; Export to Excel</button>
+                </div>
                 <table class="form-tbl">
                     <thead>
                         <tr><th colspan="2">Mortgage Information</th></tr>
@@ -420,6 +437,89 @@
         function r2(n)  { return Math.round((n + Number.EPSILON) * 100) / 100; }
         function gv(id) { return parseFloat(document.getElementById(id).value) || 0; }
         var chartInstances = {};
+        var lastResult = null;
+
+        function exportData() {
+            if (!lastResult) { alert('Please calculate your mortgage first, then export.'); return; }
+            var d       = lastResult.d;
+            var noExtra = lastResult.noExtra;
+            var wExtra  = lastResult.wExtra;
+            var hasExtra = d.extPmt > 0;
+            var saved    = noExtra.months - wExtra.months;
+            var intSaved = r2(noExtra.totInt - wExtra.totInt);
+            var noExY = Math.floor(noExtra.months/12), noExM = noExtra.months % 12;
+            var wExY  = Math.floor(wExtra.months/12),  wExM  = wExtra.months % 12;
+
+            var wb = XLSX.utils.book_new();
+
+            /* ── Loan Summary Sheet ── */
+            var summaryRows = [
+                ['Hey Kay Budgets — Mortgage Report'],
+                ['Generated: ' + new Date().toLocaleDateString()],
+                [],
+                ['LOAN DETAILS'],
+                ['Loan Amount',              d.loan],
+                ['Annual Interest Rate (%)', d.rate],
+                ['Loan Term (Years)',        d.term],
+                ['Monthly Payment',          d.mpay],
+                ['P&I Payment',              d.reqPI],
+                ['Monthly Escrow',           d.escrow],
+                ['Extra Monthly Fees',       d.efees],
+                ['Extra Principal Payment',  d.extPmt],
+                [],
+                ['RESULTS (WITHOUT EXTRA PAYMENT)'],
+                ['Total Months',             noExtra.months],
+                ['Payoff Timeline',          noExY + ' years ' + noExM + ' months'],
+                ['Total Interest Paid',      noExtra.totInt],
+                ['Total Amount Paid',        r2(d.loan + noExtra.totInt)]
+            ];
+            if (hasExtra) {
+                summaryRows.push([]);
+                summaryRows.push(['RESULTS (WITH EXTRA PAYMENT OF ' + fmt(d.extPmt) + '/mo)']);
+                summaryRows.push(['Total Months',          wExtra.months]);
+                summaryRows.push(['Payoff Timeline',       wExY + ' years ' + wExM + ' months']);
+                summaryRows.push(['Total Interest Paid',   wExtra.totInt]);
+                summaryRows.push(['Total Amount Paid',     r2(d.loan + wExtra.totInt)]);
+                summaryRows.push(['Months Saved',          saved]);
+                summaryRows.push(['Interest Saved',        intSaved]);
+            }
+            var wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+            wsSummary['!cols'] = [{wch:30},{wch:20}];
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'Loan Summary');
+
+            /* ── Helper to build amortization sheet data ── */
+            function buildAmortSheet(sc, label) {
+                var sheetRows = [
+                    [label],
+                    [],
+                    ['Month','Payment','Interest','Principal','Remaining Balance']
+                ];
+                var totPay = 0, totInt = 0, totPrin = 0;
+                sc.forEach(function(r) {
+                    sheetRows.push([r.m, r.pay, r.i, r.p, r.bal]);
+                    totPay  = r2(totPay  + r.pay);
+                    totInt  = r2(totInt  + r.i);
+                    totPrin = r2(totPrin + r.p);
+                });
+                sheetRows.push([]);
+                sheetRows.push(['TOTALS', totPay, totInt, totPrin, 0]);
+                var ws = XLSX.utils.aoa_to_sheet(sheetRows);
+                ws['!cols'] = [{wch:8},{wch:14},{wch:14},{wch:14},{wch:20}];
+                return ws;
+            }
+
+            XLSX.utils.book_append_sheet(wb,
+                buildAmortSheet(noExtra.sc, 'Amortization Schedule — Standard'),
+                'Schedule (Standard)');
+
+            if (hasExtra) {
+                XLSX.utils.book_append_sheet(wb,
+                    buildAmortSheet(wExtra.sc, 'Amortization Schedule — With Extra Payment of ' + fmt(d.extPmt) + '/mo'),
+                    'Schedule (w Extra Pmt)');
+            }
+
+            XLSX.writeFile(wb, 'HeyKay_Mortgage_Report.xlsx');
+        }
 
         function resetAll() {
             Object.values(chartInstances).forEach(function(c) { if(c) c.destroy(); });
@@ -427,6 +527,7 @@
             ['loan_amount','annual_rate','term_years','monthly_pay'].forEach(function(id){ document.getElementById(id).value=''; });
             ['escrow','extra_fees','extra_payment'].forEach(function(id){ document.getElementById(id).value='0'; });
             document.getElementById('results').innerHTML = '';
+            lastResult = null;
         }
 
         function mortgageAmort(loan, mr, monthlyPay, escrow, extraFees, extraPmt) {
@@ -475,7 +576,9 @@
                 }
                 var noExtra = mortgageAmort(loan, mr, mpay, escrow, efees, 0);
                 var wExtra  = mortgageAmort(loan, mr, mpay, escrow, efees, extPmt);
-                renderResult(out, { loan:loan, rate:rate, term:term, mpay:mpay, escrow:escrow, efees:efees, extPmt:extPmt, reqPI:reqPI }, noExtra, wExtra);
+                var d = { loan:loan, rate:rate, term:term, mpay:mpay, escrow:escrow, efees:efees, extPmt:extPmt, reqPI:reqPI };
+                lastResult = { d:d, noExtra:noExtra, wExtra:wExtra };
+                renderResult(out, d, noExtra, wExtra);
             } catch(e) { out.innerHTML = '<div class="err-box">' + e.message + '</div>'; }
         }
 
