@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debt Payoff Calculator - Hey Kay Budgets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gold: #f5c518;
+            --gold-light: #ffd84d;
+            --teal: #00d4ff;
+            --green: #00e676;
+            --red: #ff4757;
+            --purple: #a855f7;
+            --bg: #060912;
+            --bg2: #0d1526;
+            --card: rgba(255,255,255,0.04);
+            --card-border: rgba(255,255,255,0.08);
+            --text: #f0f4ff;
+            --text-muted: rgba(240,244,255,0.5);
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Animated Background ── */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            overflow: hidden; pointer-events: none;
+        }
+        .bg-gradient {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 15% -5%, rgba(245,197,24,0.13) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 50% at 85% 105%, rgba(0,212,255,0.11) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 40% at 50% 50%, rgba(17,24,39,0.9) 0%, var(--bg) 100%);
+        }
+        .bg-grid {
+            position: absolute; inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
+            background-size: 44px 44px;
+        }
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(110px); opacity: 0.45;
+            animation: orbFloat linear infinite;
+        }
+        .orb1 { width: 650px; height: 650px; background: rgba(245,197,24,0.14); top: -220px; left: -120px; animation-duration: 28s; }
+        .orb2 { width: 550px; height: 550px; background: rgba(0,212,255,0.11); bottom: -170px; right: -130px; animation-duration: 34s; animation-direction: reverse; }
+        .orb3 { width: 320px; height: 320px; background: rgba(168,85,247,0.09); top: 38%; left: 58%; animation-duration: 22s; animation-delay: -9s; }
+        @keyframes orbFloat {
+            0%   { transform: translate(0,0) scale(1); }
+            33%  { transform: translate(55px,-45px) scale(1.06); }
+            66%  { transform: translate(-45px,35px) scale(0.94); }
+            100% { transform: translate(0,0) scale(1); }
+        }
+
+        /* ── Layout ── */
+        .site-wrap { position: relative; z-index: 1; }
+
+        /* ── Header ── */
+        .site-header {
+            text-align: center; padding: 28px 20px 18px;
+            position: relative;
+        }
+        .site-header::after {
+            content: ''; position: absolute;
+            bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 70%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(245,197,24,0.25), rgba(0,212,255,0.2), transparent);
+        }
+        .logo-link { display: inline-block; }
+        .logo-img {
+            max-width: 500px; width: 100%; height: auto;
+            filter: drop-shadow(0 0 22px rgba(245,197,24,0.28));
+            transition: filter 0.35s, transform 0.35s;
+        }
+        .logo-img:hover {
+            filter: drop-shadow(0 0 40px rgba(245,197,24,0.65));
+            transform: scale(1.04);
+        }
+
+        /* ── Page ── */
+        .page { max-width: 1300px; margin: 0 auto; padding: 26px 20px 90px; }
+
+        h1 {
+            text-align: center;
+            font-size: clamp(1.9rem, 4vw, 2.9rem);
+            font-weight: 900; margin: 26px 0 8px;
+            background: linear-gradient(135deg, var(--gold) 0%, #fffbe0 45%, var(--teal) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; letter-spacing: -0.025em; line-height: 1.15;
+        }
+        .subtitle {
+            text-align: center; color: var(--text-muted);
+            font-size: 0.9rem; margin-bottom: 30px; font-weight: 400;
+        }
+
+        /* ── Currency ── */
+        .currency-row {
+            text-align: center; margin-bottom: 18px;
+            font-size: 0.86rem; color: var(--text-muted);
+        }
+        .currency-row select {
+            background: var(--bg2); color: var(--text);
+            border: 1px solid var(--card-border);
+            border-radius: 9px; padding: 7px 14px;
+            font-size: 0.86rem; margin-left: 8px;
+            cursor: pointer; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .currency-row select:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(245,197,24,0.14);
+        }
+
+        /* ── Nav ── */
+        .nav-wrap { text-align: center; margin-bottom: 30px; }
+        a.nav-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, var(--gold) 0%, #c99a00 100%);
+            color: #07090f; font-weight: 700;
+            padding: 11px 30px; border-radius: 50px;
+            text-decoration: none; font-size: 0.9rem;
+            box-shadow: 0 4px 22px rgba(245,197,24,0.32);
+            transition: transform 0.25s, box-shadow 0.25s;
+            letter-spacing: 0.015em;
+        }
+        a.nav-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 34px rgba(245,197,24,0.52); }
+
+        /* ── Glass Card ── */
+        .glass-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 22px; margin-bottom: 20px;
+            position: relative; overflow: hidden;
+        }
+        .glass-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(245,197,24,0.45), rgba(0,212,255,0.3), transparent);
+        }
+
+        /* ── Section Header ── */
+        .sec-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 18px;
+        }
+        .sec-title {
+            font-weight: 700; font-size: 1rem; color: var(--text);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sec-title::before {
+            content: '';
+            display: inline-block; width: 3px; height: 20px;
+            background: linear-gradient(180deg, var(--gold), var(--teal));
+            border-radius: 3px;
+        }
+
+        /* ── Export Btn ── */
+        .btn-export {
+            background: linear-gradient(135deg, #00954a, #00c96a);
+            color: #fff; border: none;
+            padding: 8px 18px; border-radius: 9px;
+            cursor: pointer; font-size: 0.82rem; font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 16px rgba(0,201,106,0.28);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-export:hover { transform: translateY(-1px); box-shadow: 0 7px 22px rgba(0,201,106,0.45); }
+
+        /* ── Debt Table ── */
+        .tbl-scroll { overflow-x: auto; border-radius: 12px; }
+        .debt-tbl { width: 100%; border-collapse: collapse; min-width: 700px; }
+        .debt-tbl th {
+            background: linear-gradient(135deg, rgba(245,197,24,0.12), rgba(0,212,255,0.07));
+            padding: 11px 13px; text-align: left;
+            font-weight: 600; font-size: 0.78rem;
+            color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.07em;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .debt-tbl td {
+            padding: 7px 9px;
+            border-bottom: 1px solid rgba(255,255,255,0.035);
+        }
+        .debt-tbl tr:last-child td { border-bottom: none; }
+        .debt-tbl tr:hover td { background: rgba(255,255,255,0.025); }
+        .debt-tbl td.rm-cell { width: 32px; text-align: center; }
+        .debt-tbl input[type="text"],
+        .debt-tbl input[type="number"] {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 8px; padding: 7px 10px;
+            font-size: 0.84rem; color: var(--text);
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+        .debt-tbl input::placeholder { color: rgba(255,255,255,0.22); }
+        .debt-tbl input:focus {
+            outline: none; border-color: var(--gold);
+            background: rgba(245,197,24,0.05);
+            box-shadow: 0 0 0 3px rgba(245,197,24,0.11);
+        }
+        .btn-rm {
+            background: none; border: none;
+            color: rgba(255,255,255,0.18);
+            font-size: 1.15rem; cursor: pointer;
+            padding: 2px 5px; line-height: 1;
+            transition: color 0.2s, transform 0.2s; border-radius: 5px;
+        }
+        .btn-rm:hover { color: var(--red); transform: scale(1.25); }
+
+        /* ── Action Buttons ── */
+        .act-btns {
+            text-align: center; padding: 16px 0 28px;
+            display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+        }
+        .btn-add {
+            background: linear-gradient(135deg, rgba(0,212,255,0.16), rgba(0,212,255,0.08));
+            color: var(--teal); border: 1px solid rgba(0,212,255,0.28);
+            padding: 11px 22px; border-radius: 11px;
+            cursor: pointer; font-size: 0.88rem; font-weight: 600;
+            font-family: 'Inter', sans-serif; transition: all 0.22s;
+        }
+        .btn-add:hover {
+            background: linear-gradient(135deg, rgba(0,212,255,0.28), rgba(0,212,255,0.14));
+            box-shadow: 0 5px 18px rgba(0,212,255,0.22); transform: translateY(-1px);
+        }
+        .btn-calc {
+            background: linear-gradient(135deg, var(--gold) 0%, #c99a00 100%);
+            color: #07090f; border: none;
+            padding: 11px 30px; border-radius: 11px;
+            cursor: pointer; font-size: 0.88rem; font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 22px rgba(245,197,24,0.36);
+            transition: all 0.22s;
+        }
+        .btn-calc:hover { transform: translateY(-2px); box-shadow: 0 9px 32px rgba(245,197,24,0.58); }
+        .btn-reset {
+            background: rgba(255,255,255,0.055);
+            color: var(--text-muted); border: 1px solid var(--card-border);
+            padding: 11px 22px; border-radius: 11px;
+            cursor: pointer; font-size: 0.88rem;
+            font-family: 'Inter', sans-serif; transition: all 0.22s;
+        }
+        .btn-reset:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+        /* ── Result Cards ── */
+        .res-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 18px; padding: 24px 26px;
+            margin-bottom: 20px;
+            animation: slideUp 0.42s ease both;
+            position: relative; overflow: hidden;
+        }
+        .res-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(180deg, var(--gold), var(--teal));
+            border-radius: 4px 0 0 4px;
+        }
+        .res-card::after {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(245,197,24,0.3), transparent);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .res-card h3 {
+            font-size: 1.15rem; font-weight: 700; margin-bottom: 18px;
+            display: flex; align-items: center; gap: 10px; color: var(--text);
+        }
+        .res-card h3::after {
+            content: ''; flex: 1; height: 1px;
+            background: linear-gradient(90deg, var(--card-border), transparent);
+        }
+
+        /* ── Chart + Stats Row ── */
+        .card-body-row {
+            display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .chart-box {
+            flex: 0 0 200px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 14px; padding: 14px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .chart-label {
+            font-size: 0.68rem; color: var(--text-muted);
+            font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.07em; margin-bottom: 10px;
+        }
+        .chart-box canvas { max-height: 160px; }
+        .stats-col { flex: 1; min-width: 280px; }
+
+        /* ── Stat Grid ── */
+        .sum-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+            gap: 10px; margin-bottom: 14px;
+        }
+        .si {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--card-border);
+            border-radius: 11px; padding: 11px 13px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .si:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.16); }
+        .si .lb {
+            font-size: 0.66rem; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            font-weight: 600; margin-bottom: 4px;
+        }
+        .si .vl { font-size: 0.98rem; font-weight: 700; color: var(--text); }
+        .si.hl { background: rgba(0,212,255,0.07); border-color: rgba(0,212,255,0.22); }
+        .si.hl .vl { color: var(--teal); }
+        .si.sv { background: rgba(0,230,118,0.07); border-color: rgba(0,230,118,0.22); }
+        .si.sv .vl { color: var(--green); }
+
+        /* ── Overview Chart ── */
+        .overview-chart-wrap {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 14px; padding: 16px;
+            margin-bottom: 14px;
+        }
+        .overview-chart-wrap canvas { max-height: 200px; }
+
+        /* ── Toggle / Schedule ── */
+        .tog-btn {
+            background: none; border: none;
+            color: var(--gold); cursor: pointer;
+            font-size: 0.83rem; font-weight: 600;
+            padding: 4px 0; margin-bottom: 8px;
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: color 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .tog-btn:hover { color: var(--gold-light); }
+        .tbl-wrap { overflow-x: auto; border-radius: 11px; }
+        .sched { width: 100%; border-collapse: collapse; font-size: 0.79rem; min-width: 480px; }
+        .sched th {
+            background: rgba(13,21,38,0.8);
+            color: rgba(255,255,255,0.65);
+            padding: 9px 14px; text-align: right;
+            font-weight: 600; font-size: 0.73rem;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .sched th:first-child { text-align: center; }
+        .sched td {
+            padding: 6px 14px; text-align: right;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-family: 'Inter', monospace; color: var(--text-muted);
+            font-size: 0.77rem;
+        }
+        .sched td:first-child { text-align: center; font-weight: 500; }
+        .sched tr:hover td { background: rgba(255,255,255,0.04); color: var(--text); }
+
+        /* ── Error ── */
+        .err-box {
+            background: rgba(255,71,87,0.1);
+            border: 1px solid rgba(255,71,87,0.3);
+            border-radius: 11px; padding: 10px 15px;
+            color: #ff8b96; font-size: 0.85rem; margin-bottom: 10px;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            h1 { font-size: 1.7rem; }
+            .act-btns { flex-direction: column; align-items: stretch; }
+            .act-btns button, .act-btns a { width: 100%; }
+            .chart-box { flex: 0 0 100%; max-width: 220px; margin: 0 auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Animated Background -->
+    <div class="bg-scene">
+        <div class="bg-gradient"></div>
+        <div class="bg-grid"></div>
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+    </div>
+
+    <div class="site-wrap">
+
+        <!-- Header -->
+        <header class="site-header">
+            <a href="https://www.youtube.com/@HeyKayBudgets" target="_blank" rel="noopener noreferrer" class="logo-link">
+                <img class="logo-img" src="static/logo.png" alt="Hey Kay Budgets">
+            </a>
+        </header>
+
+        <!-- Page -->
+        <div class="page">
+            <h1>Debt Payoff Calculator</h1>
+            <p class="subtitle">Enter your debts below and see exactly when you'll be debt-free</p>
+
+            <div class="currency-row">
+                <label for="currency">Currency:</label>
+                <select id="currency">
+                    <option value="usd">U.S. Dollar (USD $)</option>
+                    <option value="eur">Euro (EUR €)</option>
+                    <option value="gbp">British Pound (GBP £)</option>
+                    <option value="jpy">Japanese Yen (JPY ¥)</option>
+                    <option value="cad">Canadian Dollar (CAD $)</option>
+                    <option value="aud">Australian Dollar (AUD $)</option>
+                    <option value="mxn">Mexican Peso (MXN $)</option>
+                </select>
+            </div>
+
+            <div class="nav-wrap">
+                <a href="mortgage.html" class="nav-btn">&#127968; Mortgage Calculator</a>
+            </div>
+
+            <div class="glass-card">
+                <div class="sec-header">
+                    <span class="sec-title">Debt Information</span>
+                    <button class="btn-export" onclick="exportData()">&#11015; Export to Excel</button>
+                </div>
+                <div class="tbl-scroll">
+                    <table class="debt-tbl">
+                        <thead>
+                            <tr>
+                                <th>Debt Name</th>
+                                <th>Balance ($)</th>
+                                <th>Interest Rate (%)</th>
+                                <th>Minimum Payment ($)</th>
+                                <th>Extra Monthly Payment ($)</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="debt-rows"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="act-btns">
+                <button class="btn-add" onclick="addRow()">+ Add Another Debt</button>
+                <button class="btn-calc" onclick="calculate()">&#9889; Calculate</button>
+                <button class="btn-reset" onclick="resetAll()">&#8635; Reset</button>
+            </div>
+
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        var csym = { usd:'$', eur:'\u20AC', gbp:'\u00A3', jpy:'\u00A5', cad:'$', aud:'$', mxn:'$' };
+        var rowCount = 0;
+        var chartInstances = {};
+
+        function getSym() { return csym[document.getElementById('currency').value] || '$'; }
+        function fmt(n, sym) { return sym + parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+        function r2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
+
+        function addRow(name, bal, rate, min, ext) {
+            rowCount++;
+            var tr = document.createElement('tr');
+            var rmBtn = rowCount > 1 ? '<button class="btn-rm" onclick="this.closest(\'tr\').remove()" title="Remove">&times;</button>' : '';
+            tr.innerHTML =
+                '<td><input type="text" placeholder="e.g., Credit Card" value="' + (name||'') + '"></td>' +
+                '<td><input type="number" placeholder="e.g., 5000" min="0" step="0.01" value="' + (bal||'') + '"></td>' +
+                '<td><input type="number" placeholder="e.g., 4.125" min="0" step="0.001" value="' + (rate||'') + '"></td>' +
+                '<td><input type="number" placeholder="e.g., 100" min="0" step="0.01" value="' + (min||'') + '"></td>' +
+                '<td><input type="number" placeholder="e.g., 50" min="0" step="0.01" value="' + (ext||'') + '"></td>' +
+                '<td class="rm-cell">' + rmBtn + '</td>';
+            document.getElementById('debt-rows').appendChild(tr);
+        }
+
+        function resetAll() {
+            Object.values(chartInstances).forEach(function(c) { if(c) c.destroy(); });
+            chartInstances = {};
+            document.getElementById('debt-rows').innerHTML = '';
+            document.getElementById('results').innerHTML = '';
+            rowCount = 0;
+            addRow();
+        }
+
+        function exportData() {
+            var rows = document.querySelectorAll('#debt-rows tr');
+            if (!rows.length) { alert('No data to export.'); return; }
+            var csv = 'Debt Name,Balance ($),Interest Rate (%),Min Payment ($),Extra Payment ($)\n';
+            rows.forEach(function(row) {
+                var ins = row.querySelectorAll('input');
+                csv += '"'+ins[0].value+'","'+ins[1].value+'","'+ins[2].value+'","'+ins[3].value+'","'+ins[4].value+'"\n';
+            });
+            var a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            a.download = 'debt_payoff_data.csv';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function amort(d) {
+            var mr = (d.rate / 100) / 12, tot = d.min + d.ext;
+            var ob = d.bal, origM = 0;
+            for (var m = 1; m < 1000; m++) {
+                var oi = r2(ob * mr), op = r2(d.min - oi);
+                if (op <= 0) break;
+                if (op > ob) op = ob;
+                ob = r2(ob - op);
+                if (ob <= 0) { origM = m; break; }
+            }
+            var bal = d.bal, sc = [];
+            for (var m = 1; m < 1000; m++) {
+                var i = r2(bal * mr), p = r2(tot - i), pay = tot;
+                if (p <= 0) throw new Error('Payment too low for "' + d.name + '".');
+                if (p > bal) { p = bal; pay = r2(p + i); }
+                bal = r2(bal - p);
+                sc.push({ m: m, pay: pay, i: i, p: p, bal: Math.max(bal, 0) });
+                if (bal <= 0) break;
+            }
+            return { sc: sc, origM: origM, origY: Math.ceil(origM/12), mo: sc.length, yr: Math.ceil(sc.length/12), saved: origM - sc.length };
+        }
+
+        function calculate() {
+            var sym = getSym(), out = document.getElementById('results');
+            Object.values(chartInstances).forEach(function(c) { if(c) c.destroy(); });
+            chartInstances = {};
+            out.innerHTML = '';
+            var rows = document.querySelectorAll('#debt-rows tr');
+            if (!rows.length) { out.innerHTML = '<div class="err-box">Please add at least one debt.</div>'; return; }
+
+            var allDebts = [];
+            rows.forEach(function(row, idx) {
+                var ins  = row.querySelectorAll('input');
+                var name = ins[0].value.trim() || ('Debt ' + (idx + 1));
+                var bal  = parseFloat(ins[1].value) || 0;
+                var rate = parseFloat(ins[2].value) || 0;
+                var min  = parseFloat(ins[3].value) || 0;
+                var ext  = parseFloat(ins[4].value) || 0;
+                if (bal < 0 || rate < 0 || min < 0 || ext < 0) { showErr(out, name, 'Values cannot be negative.'); return; }
+                try {
+                    var res = amort({ name: name, bal: bal, rate: rate, min: min, ext: ext });
+                    allDebts.push({ d: { name: name, bal: bal, rate: rate, min: min, ext: ext }, res: res });
+                    renderResult(out, { name: name, bal: bal, rate: rate, min: min, ext: ext }, res, sym, idx);
+                } catch(e) { showErr(out, name, e.message); }
+            });
+
+            if (allDebts.length > 1) {
+                renderOverviewChart(out, allDebts, sym);
+            }
+        }
+
+        var COLORS = ['#f5c518','#00d4ff','#00e676','#ff4757','#a855f7','#ff9f43','#26de81','#fd79a8'];
+
+        function renderOverviewChart(container, allDebts, sym) {
+            var ovDiv = document.createElement('div');
+            ovDiv.className = 'res-card';
+            ovDiv.style.animationDelay = '0.05s';
+            ovDiv.innerHTML =
+                '<h3>Payoff Overview — All Debts</h3>' +
+                '<div class="overview-chart-wrap"><canvas id="overview-chart"></canvas></div>';
+            container.insertBefore(ovDiv, container.firstChild);
+
+            var labels  = allDebts.map(function(x) { return x.d.name; });
+            var months  = allDebts.map(function(x) { return x.res.mo; });
+            var totInts = allDebts.map(function(x) {
+                return r2(x.res.sc.reduce(function(a,r){return a+r.i;},0));
+            });
+            var bgColors  = COLORS.slice(0, labels.length).map(function(c) { return c + 'aa'; });
+            var bdColors  = COLORS.slice(0, labels.length);
+
+            setTimeout(function() {
+                var ctx = document.getElementById('overview-chart');
+                if (!ctx) return;
+                chartInstances['overview'] = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Months to Pay Off',
+                                data: months,
+                                backgroundColor: bgColors,
+                                borderColor: bdColors,
+                                borderWidth: 2,
+                                borderRadius: 9,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Total Interest',
+                                data: totInts,
+                                type: 'line',
+                                borderColor: '#ff4757',
+                                backgroundColor: 'rgba(255,71,87,0.1)',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#ff4757',
+                                pointRadius: 5,
+                                tension: 0.35,
+                                yAxisID: 'y2',
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: {
+                                labels: { color: 'rgba(255,255,255,0.6)', font: { size: 11 }, boxWidth: 12, padding: 14 }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(6,9,18,0.92)',
+                                borderColor: 'rgba(245,197,24,0.3)',
+                                borderWidth: 1,
+                                titleColor: '#fff',
+                                bodyColor: 'rgba(255,255,255,0.7)',
+                                callbacks: {
+                                    label: function(ctx) {
+                                        if (ctx.datasetIndex === 0) return ' ' + ctx.raw + ' months (' + Math.ceil(ctx.raw/12) + ' yrs)';
+                                        return ' ' + getSym() + parseFloat(ctx.raw).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' interest';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255,255,255,0.06)' },
+                                ticks: { color: 'rgba(255,255,255,0.45)', font: { size: 11 } },
+                                title: { display: true, text: 'Months', color: 'rgba(255,255,255,0.4)', font: { size: 11 } }
+                            },
+                            y2: {
+                                position: 'right',
+                                beginAtZero: true,
+                                grid: { display: false },
+                                ticks: { color: 'rgba(255,71,87,0.7)', font: { size: 11 } },
+                                title: { display: true, text: 'Interest ($)', color: 'rgba(255,71,87,0.5)', font: { size: 11 } }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 12, weight: '600' } }
+                            }
+                        }
+                    }
+                });
+            }, 60);
+        }
+
+        function showErr(c, name, msg) {
+            c.insertAdjacentHTML('beforeend', '<div class="err-box"><strong>' + name + ':</strong> ' + msg + '</div>');
+        }
+
+        function renderResult(c, d, res, sym, idx) {
+            var tid = 'tbl-' + Math.random().toString(36).substr(2, 8);
+            var cid = 'chart-' + Math.random().toString(36).substr(2, 8);
+            var totInt  = r2(res.sc.reduce(function(a,r){return a+r.i;},0));
+            var totPaid = r2(res.sc.reduce(function(a,r){return a+r.pay;},0));
+            var trows = res.sc.map(function(r){
+                return '<tr><td>'+r.m+'</td><td>'+fmt(r.pay,sym)+'</td><td>'+fmt(r.i,sym)+'</td><td>'+fmt(r.p,sym)+'</td><td>'+fmt(r.bal,sym)+'</td></tr>';
+            }).join('');
+            var origH  = res.origM > 0 ? '<div class="si"><div class="lb">Original Payoff</div><div class="vl">'+res.origM+' mo / '+res.origY+' yr</div></div>' : '';
+            var savedH = res.saved > 0 ? '<div class="si sv"><div class="lb">Months Saved</div><div class="vl">'+res.saved+'</div></div>' : '';
+
+            c.insertAdjacentHTML('beforeend',
+                '<div class="res-card" style="animation-delay:' + (idx * 0.08) + 's">' +
+                '<h3>' + d.name + '</h3>' +
+                '<div class="card-body-row">' +
+                  '<div class="chart-box"><div class="chart-label">Principal vs Interest</div><canvas id="' + cid + '"></canvas></div>' +
+                  '<div class="stats-col">' +
+                  '<div class="sum-grid">' +
+                    '<div class="si"><div class="lb">Balance</div><div class="vl">'+fmt(d.bal,sym)+'</div></div>' +
+                    '<div class="si"><div class="lb">Interest Rate</div><div class="vl">'+d.rate.toFixed(3)+'%</div></div>' +
+                    '<div class="si"><div class="lb">Min Payment</div><div class="vl">'+fmt(d.min,sym)+'</div></div>' +
+                    '<div class="si"><div class="lb">Extra Payment</div><div class="vl">'+fmt(d.ext,sym)+'</div></div>' +
+                    '<div class="si"><div class="lb">Total Interest</div><div class="vl">'+fmt(totInt,sym)+'</div></div>' +
+                    '<div class="si"><div class="lb">Total Paid</div><div class="vl">'+fmt(totPaid,sym)+'</div></div>' +
+                    origH +
+                    '<div class="si hl"><div class="lb">Payoff w/ Extra</div><div class="vl">'+res.mo+' mo / '+res.yr+' yr</div></div>' +
+                    savedH +
+                  '</div></div>' +
+                '</div>' +
+                '<button class="tog-btn" onclick="toggleTbl(\''+tid+'\',this)">&#9658; Show Schedule ('+res.sc.length+' months)</button>' +
+                '<div id="'+tid+'" style="display:none"><div class="tbl-wrap">' +
+                  '<table class="sched"><thead><tr><th>Month</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Balance</th></tr></thead>' +
+                  '<tbody>'+trows+'</tbody></table></div></div></div>');
+
+            setTimeout(function() {
+                var canvas = document.getElementById(cid);
+                if (!canvas) return;
+                chartInstances[cid] = new Chart(canvas.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Principal', 'Interest'],
+                        datasets: [{
+                            data: [d.bal, totInt],
+                            backgroundColor: ['rgba(0,212,255,0.75)', 'rgba(245,197,24,0.75)'],
+                            borderColor: ['rgba(0,212,255,1)', 'rgba(245,197,24,1)'],
+                            borderWidth: 2, hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true, cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: 'rgba(255,255,255,0.55)', font: { size: 11 }, boxWidth: 10, padding: 10 }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(6,9,18,0.92)',
+                                borderColor: 'rgba(245,197,24,0.3)', borderWidth: 1,
+                                titleColor: '#fff', bodyColor: 'rgba(255,255,255,0.7)',
+                                callbacks: { label: function(ctx) { return ' ' + fmt(ctx.raw, sym); } }
+                            }
+                        }
+                    }
+                });
+            }, 60);
+        }
+
+        function toggleTbl(id, btn) {
+            var el = document.getElementById(id), vis = el.style.display !== 'none';
+            el.style.display = vis ? 'none' : 'block';
+            btn.innerHTML = vis ? '&#9658; Show Schedule' : '&#9660; Hide Schedule';
+        }
+
+        addRow();
+    </script>
+</body>
+</html>

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Calculator - Hey Kay Budgets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gold: #f5c518;
+            --gold-light: #ffd84d;
+            --teal: #00d4ff;
+            --green: #00e676;
+            --red: #ff4757;
+            --bg: #060912;
+            --bg2: #0d1526;
+            --card: rgba(255,255,255,0.04);
+            --card-border: rgba(255,255,255,0.08);
+            --text: #f0f4ff;
+            --text-muted: rgba(240,244,255,0.5);
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Animated Background ── */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            overflow: hidden; pointer-events: none;
+        }
+        .bg-gradient {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 75% 55% at 10% -8%, rgba(0,212,255,0.12) 0%, transparent 55%),
+                radial-gradient(ellipse 65% 55% at 90% 110%, rgba(245,197,24,0.11) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 40% at 50% 50%, rgba(17,24,39,0.9) 0%, var(--bg) 100%);
+        }
+        .bg-grid {
+            position: absolute; inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
+            background-size: 44px 44px;
+        }
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(110px); opacity: 0.4;
+            animation: orbFloat linear infinite;
+        }
+        .orb1 { width: 600px; height: 600px; background: rgba(0,212,255,0.12); top: -180px; left: -100px; animation-duration: 30s; }
+        .orb2 { width: 550px; height: 550px; background: rgba(245,197,24,0.12); bottom: -160px; right: -110px; animation-duration: 36s; animation-direction: reverse; }
+        .orb3 { width: 300px; height: 300px; background: rgba(0,230,118,0.08); top: 45%; left: 55%; animation-duration: 24s; animation-delay: -12s; }
+        @keyframes orbFloat {
+            0%   { transform: translate(0,0) scale(1); }
+            33%  { transform: translate(50px,-40px) scale(1.06); }
+            66%  { transform: translate(-40px,30px) scale(0.94); }
+            100% { transform: translate(0,0) scale(1); }
+        }
+
+        /* ── Layout ── */
+        .site-wrap { position: relative; z-index: 1; }
+
+        /* ── Header ── */
+        .site-header {
+            text-align: center; padding: 28px 20px 18px;
+            position: relative;
+        }
+        .site-header::after {
+            content: ''; position: absolute;
+            bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 70%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.25), rgba(245,197,24,0.2), transparent);
+        }
+        .logo-link { display: inline-block; }
+        .logo-img {
+            max-width: 500px; width: 100%; height: auto;
+            filter: drop-shadow(0 0 22px rgba(0,212,255,0.28));
+            transition: filter 0.35s, transform 0.35s;
+        }
+        .logo-img:hover {
+            filter: drop-shadow(0 0 40px rgba(245,197,24,0.65));
+            transform: scale(1.04);
+        }
+
+        /* ── Page ── */
+        .page { max-width: 1060px; margin: 0 auto; padding: 26px 20px 90px; }
+
+        h1 {
+            text-align: center;
+            font-size: clamp(1.9rem, 4vw, 2.9rem);
+            font-weight: 900; margin: 26px 0 8px;
+            background: linear-gradient(135deg, var(--teal) 0%, #e0f7ff 45%, var(--gold) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; letter-spacing: -0.025em; line-height: 1.15;
+        }
+        .subtitle {
+            text-align: center; color: var(--text-muted);
+            font-size: 0.9rem; margin-bottom: 30px;
+        }
+
+        /* ── Nav ── */
+        .nav-wrap { text-align: center; margin-bottom: 30px; }
+        a.nav-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, var(--gold) 0%, #c99a00 100%);
+            color: #07090f; font-weight: 700;
+            padding: 11px 30px; border-radius: 50px;
+            text-decoration: none; font-size: 0.9rem;
+            box-shadow: 0 4px 22px rgba(245,197,24,0.32);
+            transition: transform 0.25s, box-shadow 0.25s;
+            letter-spacing: 0.015em;
+        }
+        a.nav-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 34px rgba(245,197,24,0.52); }
+
+        /* ── Glass Card ── */
+        .glass-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 22px; margin-bottom: 20px;
+            position: relative; overflow: hidden;
+        }
+        .glass-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.45), rgba(245,197,24,0.3), transparent);
+        }
+
+        /* ── Section Title ── */
+        .sec-title {
+            font-weight: 700; font-size: 1rem; color: var(--text);
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 16px;
+        }
+        .sec-title::before {
+            content: '';
+            display: inline-block; width: 3px; height: 20px;
+            background: linear-gradient(180deg, var(--teal), var(--gold));
+            border-radius: 3px;
+        }
+
+        /* ── Form Table ── */
+        .form-tbl { width: 100%; border-collapse: collapse; }
+        .form-tbl th {
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(245,197,24,0.07));
+            padding: 10px 14px; text-align: left;
+            font-weight: 600; font-size: 0.78rem;
+            color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.07em;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .form-tbl td {
+            padding: 7px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            width: 50%;
+        }
+        .form-tbl tr:last-child td { border-bottom: none; }
+        .form-tbl td.label-cell {
+            background: rgba(255,255,255,0.02);
+            font-size: 0.84rem; font-weight: 600;
+            color: rgba(240,244,255,0.75); width: 38%;
+        }
+        .form-tbl input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 8px; padding: 8px 11px;
+            font-size: 0.84rem; color: var(--text);
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+        .form-tbl input::placeholder { color: rgba(255,255,255,0.22); }
+        .form-tbl input:focus {
+            outline: none; border-color: var(--teal);
+            background: rgba(0,212,255,0.05);
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.11);
+        }
+        .form-hint { font-size: 0.7rem; color: var(--text-muted); margin-top: 3px; }
+
+        /* ── Buttons ── */
+        .act-btns {
+            text-align: center; padding: 18px 0 30px;
+            display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+        }
+        .btn-calc {
+            background: linear-gradient(135deg, var(--gold) 0%, #c99a00 100%);
+            color: #07090f; border: none;
+            padding: 11px 30px; border-radius: 11px;
+            cursor: pointer; font-size: 0.88rem; font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 22px rgba(245,197,24,0.36);
+            transition: all 0.22s;
+        }
+        .btn-calc:hover { transform: translateY(-2px); box-shadow: 0 9px 32px rgba(245,197,24,0.58); }
+        .btn-reset {
+            background: rgba(255,255,255,0.055);
+            color: var(--text-muted); border: 1px solid var(--card-border);
+            padding: 11px 22px; border-radius: 11px;
+            cursor: pointer; font-size: 0.88rem;
+            font-family: 'Inter', sans-serif; transition: all 0.22s;
+        }
+        .btn-reset:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+        /* ── Result Cards ── */
+        .res-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 18px; padding: 24px 26px;
+            margin-bottom: 20px;
+            animation: slideUp 0.42s ease both;
+            position: relative; overflow: hidden;
+        }
+        .res-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(180deg, var(--teal), var(--gold));
+            border-radius: 4px 0 0 4px;
+        }
+        .res-card::after {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .res-card h3 {
+            font-size: 1.15rem; font-weight: 700; margin-bottom: 18px;
+            display: flex; align-items: center; gap: 10px; color: var(--text);
+        }
+        .res-card h3::after {
+            content: ''; flex: 1; height: 1px;
+            background: linear-gradient(90deg, var(--card-border), transparent);
+        }
+
+        /* ── Stat Grid ── */
+        .sum-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px; margin-bottom: 16px;
+        }
+        .si {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--card-border);
+            border-radius: 11px; padding: 11px 13px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .si:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.16); }
+        .si .lb {
+            font-size: 0.66rem; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            font-weight: 600; margin-bottom: 4px;
+        }
+        .si .vl { font-size: 0.98rem; font-weight: 700; color: var(--text); }
+        .si.hl { background: rgba(0,212,255,0.07); border-color: rgba(0,212,255,0.22); }
+        .si.hl .vl { color: var(--teal); }
+        .si.sv { background: rgba(0,230,118,0.07); border-color: rgba(0,230,118,0.22); }
+        .si.sv .vl { color: var(--green); }
+
+        /* ── Chart ── */
+        .chart-wrap {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 14px; padding: 16px;
+            margin-bottom: 16px;
+        }
+        .chart-label-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px;
+        }
+        .chart-lbl {
+            font-size: 0.72rem; color: var(--text-muted);
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
+        }
+        .chart-wrap canvas { max-height: 220px; }
+
+        /* ── Toggle / Schedule ── */
+        .tog-btn {
+            background: none; border: none;
+            color: var(--gold); cursor: pointer;
+            font-size: 0.83rem; font-weight: 600;
+            padding: 4px 0; margin-bottom: 8px;
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: color 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .tog-btn:hover { color: var(--gold-light); }
+        .tbl-wrap { overflow-x: auto; border-radius: 11px; margin-bottom: 12px; }
+        .sched { width: 100%; border-collapse: collapse; font-size: 0.79rem; min-width: 520px; }
+        .sched th {
+            background: rgba(13,21,38,0.8);
+            color: rgba(255,255,255,0.65);
+            padding: 9px 14px; text-align: right;
+            font-weight: 600; font-size: 0.73rem;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .sched th:first-child { text-align: center; }
+        .sched td {
+            padding: 6px 14px; text-align: right;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-family: 'Inter', monospace; color: var(--text-muted); font-size: 0.77rem;
+        }
+        .sched td:first-child { text-align: center; font-weight: 500; }
+        .sched tr:hover td { background: rgba(255,255,255,0.04); color: var(--text); }
+
+        /* ── Error ── */
+        .err-box {
+            background: rgba(255,71,87,0.1);
+            border: 1px solid rgba(255,71,87,0.3);
+            border-radius: 11px; padding: 10px 15px;
+            color: #ff8b96; font-size: 0.85rem; margin-bottom: 10px;
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 1.7rem; }
+            .act-btns { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Animated Background -->
+    <div class="bg-scene">
+        <div class="bg-gradient"></div>
+        <div class="bg-grid"></div>
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+    </div>
+
+    <div class="site-wrap">
+
+        <!-- Header -->
+        <header class="site-header">
+            <a href="https://www.youtube.com/@HeyKayBudgets" target="_blank" rel="noopener noreferrer" class="logo-link">
+                <img class="logo-img" src="static/logo.png" alt="Hey Kay Budgets">
+            </a>
+        </header>
+
+        <!-- Page -->
+        <div class="page">
+            <h1>Mortgage Calculator</h1>
+            <p class="subtitle">Visualize your full loan payoff timeline and interest breakdown</p>
+
+            <div class="nav-wrap">
+                <a href="index.html" class="nav-btn">&#128196; Debt Payoff Calculator</a>
+            </div>
+
+            <div class="glass-card">
+                <div class="sec-title">Loan Details</div>
+                <table class="form-tbl">
+                    <thead>
+                        <tr><th colspan="2">Mortgage Information</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="label-cell">Loan Amount ($)</td>
+                            <td><input type="number" id="loan_amount" placeholder="e.g., 300000" min="0" step="0.01"></td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">Annual Interest Rate (%)</td>
+                            <td><input type="number" id="annual_rate" placeholder="e.g., 6.500" min="0" step="0.001"></td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">Loan Term (Years)</td>
+                            <td><input type="number" id="term_years" placeholder="e.g., 30" min="1" step="1"></td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">
+                                Monthly Payment ($)
+                                <div class="form-hint">Total payment incl. escrow</div>
+                            </td>
+                            <td><input type="number" id="monthly_pay" placeholder="e.g., 1800.00" min="0" step="0.01"></td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">
+                                Monthly Escrow ($)
+                                <div class="form-hint">Taxes &amp; insurance</div>
+                            </td>
+                            <td><input type="number" id="escrow" placeholder="0.00" min="0" step="0.01" value="0"></td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">
+                                Extra Monthly Fees ($)
+                                <div class="form-hint">HOA, PMI, etc.</div>
+                            </td>
+                            <td><input type="number" id="extra_fees" placeholder="0.00" min="0" step="0.01" value="0"></td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">
+                                Extra Principal Payment ($)
+                                <div class="form-hint">Additional monthly principal</div>
+                            </td>
+                            <td><input type="number" id="extra_payment" placeholder="0.00" min="0" step="0.01" value="0"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="act-btns">
+                <button class="btn-calc" onclick="calculate()">&#9889; Calculate</button>
+                <button class="btn-reset" onclick="resetAll()">&#8635; Reset</button>
+            </div>
+
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        function fmt(n) { return '$' + parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+        function r2(n)  { return Math.round((n + Number.EPSILON) * 100) / 100; }
+        function gv(id) { return parseFloat(document.getElementById(id).value) || 0; }
+        var chartInstances = {};
+
+        function resetAll() {
+            Object.values(chartInstances).forEach(function(c) { if(c) c.destroy(); });
+            chartInstances = {};
+            ['loan_amount','annual_rate','term_years','monthly_pay'].forEach(function(id){ document.getElementById(id).value=''; });
+            ['escrow','extra_fees','extra_payment'].forEach(function(id){ document.getElementById(id).value='0'; });
+            document.getElementById('results').innerHTML = '';
+        }
+
+        function mortgageAmort(loan, mr, monthlyPay, escrow, extraFees, extraPmt) {
+            var bal = loan, sc = [], totInt = 0;
+            var totPay = monthlyPay + extraFees + extraPmt;
+            for (var m = 1; m <= 1000; m++) {
+                var i = r2(bal * mr);
+                var p = r2(monthlyPay - i - escrow + extraPmt);
+                var pay = totPay;
+                if (p <= 0) throw new Error('Monthly payment is too low to cover interest and escrow.');
+                if (p > bal) { p = bal; pay = r2(p + i + escrow + extraFees); }
+                bal = r2(bal - p); totInt = r2(totInt + i);
+                sc.push({ m:m, pay:pay, i:i, p:p, bal:Math.max(bal,0) });
+                if (bal <= 0) break;
+            }
+            return { sc:sc, totInt:totInt, months:sc.length };
+        }
+
+        function calcMinPI(loan, mr, n) {
+            if (mr === 0) return r2(loan / n);
+            var f = Math.pow(1 + mr, n);
+            return r2(loan * (mr * f) / (f - 1));
+        }
+
+        function calculate() {
+            var out = document.getElementById('results');
+            Object.values(chartInstances).forEach(function(c) { if(c) c.destroy(); });
+            chartInstances = {};
+            out.innerHTML = '';
+            var loan   = gv('loan_amount'), rate   = gv('annual_rate');
+            var term   = gv('term_years'),  mpay   = gv('monthly_pay');
+            var escrow = gv('escrow'),      efees  = gv('extra_fees');
+            var extPmt = gv('extra_payment');
+            if (loan  <= 0) { out.innerHTML = '<div class="err-box">Loan Amount must be greater than zero.</div>'; return; }
+            if (term  <= 0) { out.innerHTML = '<div class="err-box">Loan Term must be greater than zero.</div>'; return; }
+            if (mpay  <= 0) { out.innerHTML = '<div class="err-box">Monthly Payment must be greater than zero.</div>'; return; }
+            if (rate  <  0 || escrow < 0 || efees < 0 || extPmt < 0) { out.innerHTML = '<div class="err-box">Values cannot be negative.</div>'; return; }
+            try {
+                var mr    = (rate / 100) / 12;
+                var n     = Math.round(term * 12);
+                var reqPI = r2(mpay - escrow);
+                var minPI = calcMinPI(loan, mr, n);
+                if (reqPI < minPI) {
+                    out.innerHTML = '<div class="err-box">Your P&amp;I payment (' + fmt(reqPI) + ') is less than the minimum required (' + fmt(minPI) + ') to pay off the loan in ' + term + ' years.</div>';
+                    return;
+                }
+                var noExtra = mortgageAmort(loan, mr, mpay, escrow, efees, 0);
+                var wExtra  = mortgageAmort(loan, mr, mpay, escrow, efees, extPmt);
+                renderResult(out, { loan:loan, rate:rate, term:term, mpay:mpay, escrow:escrow, efees:efees, extPmt:extPmt, reqPI:reqPI }, noExtra, wExtra);
+            } catch(e) { out.innerHTML = '<div class="err-box">' + e.message + '</div>'; }
+        }
+
+        function renderResult(c, d, noExtra, wExtra) {
+            var hasExtra = d.extPmt > 0;
+            var saved    = noExtra.months - wExtra.months;
+            var intSaved = r2(noExtra.totInt - wExtra.totInt);
+            var noExY = Math.floor(noExtra.months/12), noExM = noExtra.months % 12;
+            var wExY  = Math.floor(wExtra.months/12),  wExM  = wExtra.months % 12;
+
+            function buildRows(sc) {
+                return sc.map(function(r){
+                    return '<tr><td>'+r.m+'</td><td>'+fmt(r.pay)+'</td><td>'+fmt(r.i)+'</td><td>'+fmt(r.p)+'</td><td>'+fmt(r.bal)+'</td></tr>';
+                }).join('');
+            }
+
+            var tid1 = 'tbl1-' + Math.random().toString(36).substr(2,8);
+            var tid2 = 'tbl2-' + Math.random().toString(36).substr(2,8);
+            var cid  = 'chart-' + Math.random().toString(36).substr(2,8);
+            var schedHead = '<thead><tr><th>Month</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Balance</th></tr></thead>';
+
+            var savedHtml    = saved    > 0 ? '<div class="si sv"><div class="lb">Months Saved</div><div class="vl">'+saved+'</div></div>' : '';
+            var intSavedHtml = intSaved > 0 ? '<div class="si sv"><div class="lb">Interest Saved</div><div class="vl">'+fmt(intSaved)+'</div></div>' : '';
+
+            var html =
+                '<div class="res-card">' +
+                '<h3>Mortgage Summary</h3>' +
+                '<div class="sum-grid">' +
+                  '<div class="si"><div class="lb">Loan Amount</div><div class="vl">'+fmt(d.loan)+'</div></div>' +
+                  '<div class="si"><div class="lb">Annual Rate</div><div class="vl">'+d.rate.toFixed(3)+'%</div></div>' +
+                  '<div class="si"><div class="lb">Term</div><div class="vl">'+d.term+' years</div></div>' +
+                  '<div class="si"><div class="lb">Monthly Payment</div><div class="vl">'+fmt(d.mpay)+'</div></div>' +
+                  '<div class="si"><div class="lb">P&amp;I Payment</div><div class="vl">'+fmt(d.reqPI)+'</div></div>' +
+                  '<div class="si"><div class="lb">Escrow</div><div class="vl">'+fmt(d.escrow)+'</div></div>' +
+                  (d.efees  > 0 ? '<div class="si"><div class="lb">Extra Fees</div><div class="vl">'+fmt(d.efees)+'</div></div>' : '') +
+                  (d.extPmt > 0 ? '<div class="si"><div class="lb">Extra Payment</div><div class="vl">'+fmt(d.extPmt)+'</div></div>' : '') +
+                '</div>' +
+                '<div class="sum-grid">' +
+                  '<div class="si"><div class="lb">Payoff (No Extra)</div><div class="vl">'+noExtra.months+' mo ('+noExY+'y '+noExM+'m)</div></div>' +
+                  '<div class="si"><div class="lb">Total Interest (No Extra)</div><div class="vl">'+fmt(noExtra.totInt)+'</div></div>' +
+                  (hasExtra ? '<div class="si hl"><div class="lb">Payoff (w/ Extra)</div><div class="vl">'+wExtra.months+' mo ('+wExY+'y '+wExM+'m)</div></div>' : '') +
+                  (hasExtra ? '<div class="si hl"><div class="lb">Total Interest (w/ Extra)</div><div class="vl">'+fmt(wExtra.totInt)+'</div></div>' : '') +
+                  savedHtml + intSavedHtml +
+                '</div>' +
+                '<div class="chart-wrap">' +
+                  '<div class="chart-label-row"><span class="chart-lbl">Balance Over Time</span>' +
+                  (hasExtra ? '<span class="chart-lbl" style="color:rgba(0,230,118,0.7)">&#9644; Without Extra &nbsp; &#9644; With Extra</span>' : '') +
+                  '</div>' +
+                  '<canvas id="' + cid + '"></canvas>' +
+                '</div>';
+
+            if (hasExtra) {
+                html +=
+                    '<button class="tog-btn" onclick="toggleTbl(\''+tid1+'\',this)">&#9658; Show Schedule Without Extra Payment ('+noExtra.months+' months)</button>' +
+                    '<div id="'+tid1+'" style="display:none"><div class="tbl-wrap"><table class="sched">'+schedHead+'<tbody>'+buildRows(noExtra.sc)+'</tbody></table></div></div>' +
+                    '<button class="tog-btn" onclick="toggleTbl(\''+tid2+'\',this)">&#9658; Show Schedule With Extra Payment ('+wExtra.months+' months)</button>' +
+                    '<div id="'+tid2+'" style="display:none"><div class="tbl-wrap"><table class="sched">'+schedHead+'<tbody>'+buildRows(wExtra.sc)+'</tbody></table></div></div>';
+            } else {
+                html +=
+                    '<button class="tog-btn" onclick="toggleTbl(\''+tid1+'\',this)">&#9658; Show Amortization Schedule ('+noExtra.months+' months)</button>' +
+                    '<div id="'+tid1+'" style="display:none"><div class="tbl-wrap"><table class="sched">'+schedHead+'<tbody>'+buildRows(noExtra.sc)+'</tbody></table></div></div>';
+            }
+            html += '</div>';
+            c.insertAdjacentHTML('beforeend', html);
+
+            // Render balance line chart
+            setTimeout(function() {
+                var canvas = document.getElementById(cid);
+                if (!canvas) return;
+
+                // Sample every N months so the chart isn't overwhelming
+                var step = Math.max(1, Math.floor(noExtra.sc.length / 80));
+                function sample(sc) {
+                    var pts = sc.filter(function(r, i) { return i % step === 0 || i === sc.length - 1; });
+                    return { labels: pts.map(function(r) { return r.m; }), data: pts.map(function(r) { return r.bal; }) };
+                }
+                var s1 = sample(noExtra.sc);
+                var datasets = [{
+                    label: 'Balance (No Extra)',
+                    data: s1.data,
+                    borderColor: 'rgba(0,212,255,0.9)',
+                    backgroundColor: 'rgba(0,212,255,0.08)',
+                    fill: true, borderWidth: 2,
+                    pointRadius: 0, tension: 0.4
+                }];
+                var labels = s1.labels;
+                if (hasExtra) {
+                    var s2 = sample(wExtra.sc);
+                    datasets.push({
+                        label: 'Balance (w/ Extra)',
+                        data: s2.data,
+                        borderColor: 'rgba(0,230,118,0.9)',
+                        backgroundColor: 'rgba(0,230,118,0.06)',
+                        fill: true, borderWidth: 2,
+                        pointRadius: 0, tension: 0.4
+                    });
+                }
+
+                chartInstances[cid] = new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: { labels: labels, datasets: datasets },
+                    options: {
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: {
+                                labels: { color: 'rgba(255,255,255,0.55)', font: { size: 11 }, boxWidth: 12, padding: 14 }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(6,9,18,0.92)',
+                                borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1,
+                                titleColor: '#fff', bodyColor: 'rgba(255,255,255,0.7)',
+                                callbacks: {
+                                    title: function(items) { return 'Month ' + items[0].label; },
+                                    label: function(ctx) { return ' ' + ctx.dataset.label + ': ' + fmt(ctx.raw); }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255,255,255,0.06)' },
+                                ticks: {
+                                    color: 'rgba(255,255,255,0.45)', font: { size: 11 },
+                                    callback: function(v) { return '$' + (v/1000).toFixed(0) + 'k'; }
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } },
+                                title: { display: true, text: 'Month', color: 'rgba(255,255,255,0.3)', font: { size: 11 } }
+                            }
+                        }
+                    }
+                });
+            }, 60);
+        }
+
+        function toggleTbl(id, btn) {
+            var el = document.getElementById(id), vis = el.style.display !== 'none';
+            el.style.display = vis ? 'none' : 'block';
+            btn.innerHTML = btn.innerHTML
+                .replace(vis ? '&#9660;' : '&#9658;', vis ? '&#9658;' : '&#9660;')
+                .replace(vis ? 'Hide' : 'Show', vis ? 'Show' : 'Hide');
+        }
+    </script>
+</body>
+</html>
