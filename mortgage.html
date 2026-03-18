@@ -338,6 +338,92 @@
             h1 { font-size: 1.7rem; }
             .act-btns { flex-direction: column; align-items: stretch; }
         }
+
+        /* ── Educational Content ── */
+        .content-section {
+            max-width: 1060px; margin: 0 auto; padding: 0 20px 80px;
+            position: relative; z-index: 1;
+        }
+        .content-section h2 {
+            font-size: clamp(1.4rem, 3vw, 1.9rem);
+            font-weight: 800; margin: 48px 0 16px;
+            background: linear-gradient(135deg, var(--teal) 0%, #e0f7ff 60%, var(--gold) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section h3 {
+            font-size: 1.1rem; font-weight: 700;
+            color: var(--teal); margin: 28px 0 10px;
+        }
+        .content-section p {
+            color: rgba(240,244,255,0.75);
+            font-size: 0.93rem; line-height: 1.75;
+            margin-bottom: 14px;
+        }
+        .content-section ul, .content-section ol {
+            color: rgba(240,244,255,0.75);
+            font-size: 0.93rem; line-height: 1.75;
+            margin: 0 0 14px 20px;
+        }
+        .content-section li { margin-bottom: 6px; }
+        .content-section strong { color: var(--text); font-weight: 600; }
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px; margin: 20px 0;
+        }
+        .glossary-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 14px; padding: 16px 18px;
+            position: relative; overflow: hidden;
+        }
+        .glossary-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, var(--teal), var(--gold));
+        }
+        .glossary-card dt {
+            font-weight: 700; font-size: 0.92rem;
+            color: var(--teal); margin-bottom: 6px;
+        }
+        .glossary-card dd {
+            font-size: 0.85rem; color: rgba(240,244,255,0.65);
+            line-height: 1.6; margin: 0;
+        }
+        .tip-box {
+            background: rgba(0,212,255,0.07);
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 14px; padding: 16px 20px;
+            margin: 20px 0;
+        }
+        .tip-box .tip-label {
+            font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--teal); margin-bottom: 8px;
+        }
+        .tip-box p { margin: 0; color: rgba(240,244,255,0.8); }
+        .divider {
+            height: 1px; margin: 40px 0;
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.2), rgba(245,197,24,0.15), transparent);
+        }
+        .faq-item { margin-bottom: 20px; }
+        .faq-q {
+            font-weight: 700; font-size: 0.95rem;
+            color: var(--text); margin-bottom: 6px;
+            display: flex; align-items: flex-start; gap: 10px;
+        }
+        .faq-q::before {
+            content: 'Q'; min-width: 24px; height: 24px;
+            background: linear-gradient(135deg, var(--teal), var(--gold));
+            color: #060912; font-size: 0.75rem; font-weight: 800;
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; margin-top: 1px; flex-shrink: 0;
+        }
+        .faq-a {
+            color: rgba(240,244,255,0.7); font-size: 0.9rem;
+            line-height: 1.7; padding-left: 34px;
+        }
     </style>
 </head>
 <body>
@@ -725,5 +811,208 @@
                 .replace(vis ? 'Hide' : 'Show', vis ? 'Show' : 'Hide');
         }
     </script>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         EDUCATIONAL CONTENT — helps search engines index this page
+         and provides real value to readers alongside the tool.
+         ═══════════════════════════════════════════════════════════ -->
+    <section class="content-section" aria-label="Mortgage Calculator Guide">
+
+        <h2>How to Use This Mortgage Calculator</h2>
+        <p>
+            The Hey Kay Budgets Mortgage Calculator is designed to give you a complete, month-by-month picture
+            of your home loan. Whether you are shopping for your first house or trying to decide whether to
+            make an extra principal payment each month, this tool walks you through the math so you never
+            have to guess.
+        </p>
+        <ol>
+            <li><strong>Enter your Loan Amount</strong> — the total amount you borrowed (or plan to borrow), not the purchase price.</li>
+            <li><strong>Enter your Annual Interest Rate</strong> — your lender will quote this as an annual percentage (e.g., 6.500%).</li>
+            <li><strong>Enter your Loan Term in Years</strong> — common terms are 10, 15, 20, or 30 years.</li>
+            <li><strong>Enter your Monthly Payment</strong> — the total amount you send to your lender each month, including escrow.</li>
+            <li><strong>Enter your Monthly Escrow</strong> — the portion of your payment that covers property taxes and homeowners insurance.</li>
+            <li><strong>Enter any Extra Monthly Fees</strong> — HOA dues, PMI, flood insurance, etc.</li>
+            <li><strong>Enter an Extra Principal Payment</strong> — any additional amount you want to apply directly to your principal balance each month to pay off your loan faster.</li>
+            <li>Click <strong>"Calculate"</strong> and review your full amortization schedule, total interest paid, and how much time and money an extra payment could save you.</li>
+        </ol>
+        <p>
+            The calculator generates two side-by-side scenarios whenever you include an extra payment:
+            one showing your standard payoff timeline and one showing the accelerated timeline.
+            Use the built-in chart to visualize how your balance drops over time, and click
+            <em>"Export to Excel"</em> to download a detailed spreadsheet for your records.
+        </p>
+
+        <div class="divider"></div>
+
+        <h2>Understanding Your Mortgage — Key Terms Explained</h2>
+        <p>
+            Buying a home involves a lot of terminology. Below are plain-language definitions
+            of every field in this calculator so you know exactly what each number means.
+        </p>
+        <dl class="glossary-grid">
+            <div class="glossary-card">
+                <dt>Principal</dt>
+                <dd>The original amount of money you borrowed from the lender. Each month, part of your payment goes toward reducing this balance. The lower your principal, the less interest accrues the following month.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>Interest</dt>
+                <dd>The cost of borrowing money, expressed as an annual percentage rate (APR). Your monthly interest charge equals your remaining principal multiplied by your monthly interest rate (annual rate ÷ 12).</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>Escrow</dt>
+                <dd>An account your lender manages to collect and pay property taxes and homeowners insurance on your behalf. Your monthly escrow payment is typically 1/12 of your estimated annual tax and insurance bill.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>PMI (Private Mortgage Insurance)</dt>
+                <dd>An insurance policy that protects the lender if you default. PMI is usually required when your down payment is less than 20% of the home's purchase price. Once your equity reaches 20%, you can typically request to have PMI removed.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>Amortization</dt>
+                <dd>The process of paying off a loan through regular scheduled payments. Early in your loan, most of each payment goes toward interest. Over time, the balance shifts so that more goes toward principal.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>P&amp;I Payment</dt>
+                <dd>Principal and Interest — the portion of your monthly payment that covers the actual loan repayment. This is your total monthly payment minus escrow and any extra fees.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>Extra Principal Payment</dt>
+                <dd>Any additional money you pay above your required monthly payment that is applied directly to your principal balance. Even a small extra payment every month can shave years off your loan and save thousands in interest.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>HOA Fees</dt>
+                <dd>Homeowners Association fees charged in many planned communities and condominiums to cover shared amenities and maintenance. These are not part of your mortgage payment but are a real monthly housing cost.</dd>
+            </div>
+        </dl>
+
+        <div class="divider"></div>
+
+        <h2>How Much House Can You Afford?</h2>
+        <p>
+            One of the most common questions first-time buyers ask is: <em>"How much house can I actually afford?"</em>
+            Lenders use several guidelines to determine your eligibility, but the most important rule of thumb
+            you can apply yourself is the <strong>28/36 Rule</strong>.
+        </p>
+        <h3>The 28/36 Rule</h3>
+        <p>
+            <strong>Front-end ratio (28%):</strong> Your total monthly housing costs — including P&amp;I, escrow, PMI,
+            and HOA fees — should not exceed 28% of your gross monthly income.
+        </p>
+        <p>
+            <strong>Back-end ratio (36%):</strong> Your total monthly debt payments — housing costs plus car loans,
+            student loans, credit cards, and other obligations — should not exceed 36% of your gross monthly income.
+        </p>
+        <div class="tip-box">
+            <div class="tip-label">Hey Kay Tip</div>
+            <p>
+                Run the numbers before you fall in love with a home. Plug in your target loan amount, current
+                rates, and expected escrow into this calculator to see your real monthly cost — then compare it
+                to 28% of your take-home pay. If the number is too high, adjust your down payment or target a
+                lower purchase price before you start house-hunting.
+            </p>
+        </div>
+
+        <h3>Down Payment Size Matters</h3>
+        <p>
+            A larger down payment reduces your loan amount (and therefore your monthly payment and total interest),
+            and it can help you avoid PMI entirely if you put down 20% or more. However, depleting your emergency
+            fund to hit 20% down can leave you financially vulnerable. Many financial advisors suggest keeping
+            3–6 months of living expenses in savings even after closing.
+        </p>
+
+        <div class="divider"></div>
+
+        <h2>Strategies to Pay Off Your Mortgage Faster</h2>
+        <p>
+            Paying off your mortgage early is one of the most powerful moves in personal finance. The interest
+            savings can be dramatic — on a $300,000 loan at 6.5% for 30 years, adding just $200 extra per month
+            cuts more than 6 years off your loan and saves over $60,000 in interest. Here are the most effective
+            strategies:
+        </p>
+        <h3>1. Make an Extra Monthly Principal Payment</h3>
+        <p>
+            Use the "Extra Principal Payment" field in this calculator to model different amounts.
+            Even $50–$100 extra per month makes a measurable difference. The key is consistency —
+            set up an automatic transfer so the extra payment happens without you having to think about it.
+        </p>
+        <h3>2. Make Bi-Weekly Payments</h3>
+        <p>
+            Instead of 12 monthly payments per year, pay half your mortgage payment every two weeks.
+            Because there are 52 weeks in a year, this results in 26 half-payments — the equivalent of
+            13 full monthly payments instead of 12. That extra payment goes entirely toward principal each year.
+        </p>
+        <h3>3. Apply Windfalls to Your Principal</h3>
+        <p>
+            Tax refunds, bonuses, and inheritances are golden opportunities. Even a one-time $2,000 principal
+            payment early in your loan can eliminate several months of payments and save multiples of that
+            amount in interest over the life of the loan.
+        </p>
+        <h3>4. Refinance Strategically</h3>
+        <p>
+            If market rates drop significantly below your current rate, refinancing to a lower rate
+            (and keeping your payment the same) redirects more money to principal each month.
+            Just be sure to account for closing costs, which typically run 2–5% of the loan amount,
+            to ensure the break-even point makes financial sense for your situation.
+        </p>
+
+        <div class="divider"></div>
+
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+            <div class="faq-q">What is the difference between my interest rate and my APR?</div>
+            <div class="faq-a">
+                Your <strong>interest rate</strong> is the base cost of borrowing the principal balance.
+                Your <strong>APR (Annual Percentage Rate)</strong> includes the interest rate plus
+                lender fees and other costs spread over the life of the loan, making it a more complete
+                picture of your borrowing cost. When comparing loan offers, always compare APRs.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">Why does my early amortization schedule show mostly interest?</div>
+            <div class="faq-a">
+                This is how amortization works. Your monthly interest is calculated on your current outstanding
+                balance. Early on, that balance is at its highest, so the interest portion is largest.
+                As you pay down the principal, interest shrinks and principal grows — even though your total
+                payment stays the same. This is why extra early payments are so powerful; they reduce the
+                balance on which future interest is calculated.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">How do I remove PMI?</div>
+            <div class="faq-a">
+                Under the Homeowners Protection Act, lenders must cancel PMI automatically once your
+                loan balance reaches 78% of the original purchase price. However, you can request
+                cancellation earlier — at 80% LTV — by contacting your servicer. Use your amortization
+                schedule to identify the exact month you hit that threshold.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">Is it better to pay off my mortgage or invest the extra money?</div>
+            <div class="faq-a">
+                This is one of the most debated questions in personal finance, and the right answer
+                depends on your interest rate, tax situation, and risk tolerance. Mathematically,
+                if your after-tax mortgage rate is lower than your expected investment return,
+                investing may come out ahead. But paying off a mortgage provides a guaranteed,
+                risk-free return equal to your interest rate and delivers peace of mind that
+                no investment can match. Many people find a balanced approach — contributing
+                enough to get an employer's 401(k) match, then directing extra cash to their mortgage — works best.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">What happens if I miss a mortgage payment?</div>
+            <div class="faq-a">
+                Missing a payment by more than 30 days can be reported to the credit bureaus and
+                significantly damage your credit score. Most lenders charge a late fee after a 15-day
+                grace period. If you anticipate trouble making a payment, contact your servicer
+                <em>before</em> the due date — many offer forbearance or deferral programs,
+                especially for borrowers with a history of on-time payments.
+            </div>
+        </div>
+
+    </section>
 </body>
 </html>

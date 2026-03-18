@@ -392,6 +392,113 @@
             .act-btns button, .act-btns a { width: 100%; }
             .chart-box { flex: 0 0 100%; max-width: 220px; margin: 0 auto; }
         }
+
+        /* ── Educational Content ── */
+        .content-section {
+            max-width: 1300px; margin: 0 auto; padding: 0 20px 80px;
+            position: relative; z-index: 1;
+        }
+        .content-section h2 {
+            font-size: clamp(1.4rem, 3vw, 1.9rem);
+            font-weight: 800; margin: 48px 0 16px;
+            background: linear-gradient(135deg, var(--gold) 0%, #fffbe0 50%, var(--teal) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section h3 {
+            font-size: 1.1rem; font-weight: 700;
+            color: var(--gold); margin: 28px 0 10px;
+        }
+        .content-section p {
+            color: rgba(240,244,255,0.75);
+            font-size: 0.93rem; line-height: 1.75; margin-bottom: 14px;
+        }
+        .content-section ul, .content-section ol {
+            color: rgba(240,244,255,0.75);
+            font-size: 0.93rem; line-height: 1.75;
+            margin: 0 0 14px 20px;
+        }
+        .content-section li { margin-bottom: 6px; }
+        .content-section strong { color: var(--text); font-weight: 600; }
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px; margin: 20px 0;
+        }
+        .glossary-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 14px; padding: 16px 18px;
+            position: relative; overflow: hidden;
+        }
+        .glossary-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, var(--gold), var(--teal));
+        }
+        .glossary-card dt {
+            font-weight: 700; font-size: 0.92rem;
+            color: var(--gold); margin-bottom: 6px;
+        }
+        .glossary-card dd {
+            font-size: 0.85rem; color: rgba(240,244,255,0.65);
+            line-height: 1.6; margin: 0;
+        }
+        .tip-box {
+            background: rgba(245,197,24,0.07);
+            border: 1px solid rgba(245,197,24,0.22);
+            border-radius: 14px; padding: 16px 20px; margin: 20px 0;
+        }
+        .tip-box .tip-label {
+            font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--gold); margin-bottom: 8px;
+        }
+        .tip-box p { margin: 0; color: rgba(240,244,255,0.8); }
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px; margin: 20px 0;
+        }
+        .strategy-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 14px; padding: 18px 20px;
+        }
+        .strategy-card .s-title {
+            font-weight: 700; font-size: 1rem;
+            color: var(--text); margin-bottom: 8px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .strategy-card .s-badge {
+            font-size: 0.7rem; font-weight: 700;
+            padding: 3px 8px; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .badge-avalanche { background: rgba(0,212,255,0.18); color: var(--teal); }
+        .badge-snowball  { background: rgba(245,197,24,0.18); color: var(--gold); }
+        .strategy-card p { font-size: 0.86rem; color: rgba(240,244,255,0.65); line-height: 1.65; margin: 0; }
+        .divider {
+            height: 1px; margin: 40px 0;
+            background: linear-gradient(90deg, transparent, rgba(245,197,24,0.18), rgba(0,212,255,0.15), transparent);
+        }
+        .faq-item { margin-bottom: 20px; }
+        .faq-q {
+            font-weight: 700; font-size: 0.95rem;
+            color: var(--text); margin-bottom: 6px;
+            display: flex; align-items: flex-start; gap: 10px;
+        }
+        .faq-q::before {
+            content: 'Q'; min-width: 24px; height: 24px;
+            background: linear-gradient(135deg, var(--gold), var(--teal));
+            color: #060912; font-size: 0.75rem; font-weight: 800;
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; margin-top: 1px; flex-shrink: 0;
+        }
+        .faq-a {
+            color: rgba(240,244,255,0.7); font-size: 0.9rem;
+            line-height: 1.7; padding-left: 34px;
+        }
     </style>
 </head>
 <body>
@@ -803,5 +910,212 @@
 
         addRow();
     </script>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         EDUCATIONAL CONTENT — helps search engines index this page
+         and provides real value to readers alongside the tool.
+         ═══════════════════════════════════════════════════════════ -->
+    <section class="content-section" aria-label="Debt Payoff Calculator Guide">
+
+        <h2>How to Use This Debt Payoff Calculator</h2>
+        <p>
+            Getting out of debt is one of the most life-changing financial decisions you can make —
+            and the Hey Kay Budgets Debt Payoff Calculator makes it easy to see a realistic path forward.
+            Whether you have one credit card or multiple loans, this tool shows you exactly when each
+            debt will be gone and how much interest you will pay along the way.
+        </p>
+        <ol>
+            <li><strong>Enter a Debt Name</strong> — label each debt so your results are easy to read (e.g., "Chase Visa," "Student Loan," "Car Payment").</li>
+            <li><strong>Enter the Current Balance</strong> — the amount you owe right now, not the original loan amount.</li>
+            <li><strong>Enter the Annual Interest Rate</strong> — find this on your statement; it is usually labeled APR. Enter it as a number (e.g., 24.99 for 24.99%).</li>
+            <li><strong>Enter the Minimum Payment</strong> — the required amount due each month as shown on your statement.</li>
+            <li><strong>Enter an Extra Monthly Payment</strong> — any amount above the minimum you can commit to each month. Even a small extra payment makes a big difference over time.</li>
+            <li>Click <strong>"+ Add Another Debt"</strong> to add multiple debts and track them all in one place.</li>
+            <li>Click <strong>"Calculate"</strong> to see your personalized payoff timeline, total interest cost, and a full amortization schedule for each debt.</li>
+            <li>Use <strong>"Export to Excel"</strong> to download a detailed spreadsheet you can share with a financial advisor or save for your records.</li>
+        </ol>
+        <div class="tip-box">
+            <div class="tip-label">Hey Kay Tip</div>
+            <p>
+                Start by entering all your debts at once and clicking Calculate with only the minimum payments.
+                That "total interest" number is often a wake-up call that motivates action. Then add even $25
+                extra to your highest-rate debt and watch how dramatically the numbers change.
+            </p>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>Debt Payoff Strategies: Avalanche vs. Snowball</h2>
+        <p>
+            There are two popular, proven methods for paying off multiple debts. Both work —
+            the best one is the one you will actually stick to.
+        </p>
+        <div class="strategy-grid">
+            <div class="strategy-card">
+                <div class="s-title">
+                    Avalanche Method
+                    <span class="s-badge badge-avalanche">Saves Most Interest</span>
+                </div>
+                <p>
+                    Pay minimum payments on all debts. Put every extra dollar toward the debt with
+                    the <strong>highest interest rate</strong>. Once that debt is gone, roll its
+                    full payment to the next-highest rate. Mathematically optimal — you will pay
+                    the least total interest and get out of debt fastest.
+                </p>
+            </div>
+            <div class="strategy-card">
+                <div class="s-title">
+                    Snowball Method
+                    <span class="s-badge badge-snowball">Best for Motivation</span>
+                </div>
+                <p>
+                    Pay minimum payments on all debts. Put every extra dollar toward the debt with
+                    the <strong>smallest balance</strong>. Paying off an account quickly delivers
+                    a psychological win that keeps you motivated. Research shows it leads to better
+                    long-term follow-through for many people.
+                </p>
+            </div>
+        </div>
+        <p>
+            To model either strategy with this calculator, simply rank your debts and enter
+            extra payments only on your target debt. As you pay off each account, revisit
+            the calculator and reallocate that freed-up payment to the next debt.
+        </p>
+
+        <div class="divider"></div>
+
+        <h2>Understanding Your Debt — Key Terms Explained</h2>
+        <dl class="glossary-grid">
+            <div class="glossary-card">
+                <dt>APR (Annual Percentage Rate)</dt>
+                <dd>The annual cost of borrowing money, expressed as a percentage. For credit cards, this is the rate applied to any balance you carry from month to month. Higher APR = more interest per dollar of debt.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>Minimum Payment</dt>
+                <dd>The smallest amount your lender requires you to pay each month. Paying only the minimum keeps your account in good standing but means most of your payment goes to interest, not principal — dramatically extending your payoff timeline.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>Principal</dt>
+                <dd>The actual amount you owe, not counting interest. Each payment is split between interest (the cost of borrowing) and principal (reducing your balance). Only principal payments bring you closer to debt freedom.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>Amortization</dt>
+                <dd>The schedule of payments that pays off a loan over time. Early payments are mostly interest; later payments are mostly principal. The full schedule is available in the calculator results so you can see every single payment.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>Interest</dt>
+                <dd>The fee charged by a lender for borrowing money, calculated as a percentage of your outstanding balance. Reducing your balance faster — through extra payments — directly reduces the interest you are charged each month.</dd>
+            </div>
+            <div class="glossary-card">
+                <dt>Extra Payment</dt>
+                <dd>Any amount above your required minimum payment. Extra payments go entirely toward principal (verify with your lender), which reduces future interest charges and shortens your payoff timeline.</dd>
+            </div>
+        </dl>
+
+        <div class="divider"></div>
+
+        <h2>Budgeting Tips from Hey Kay Budgets</h2>
+        <p>
+            Paying off debt is not just about math — it requires a plan, habits, and consistency.
+            Here are practical tips to help you accelerate your debt payoff journey:
+        </p>
+
+        <h3>Build a Zero-Based Budget</h3>
+        <p>
+            A zero-based budget means every dollar of income is assigned a job — savings, expenses, and
+            debt payoff — so that income minus expenses equals zero. This approach surfaces hidden spending
+            and makes room for extra debt payments without feeling like a sacrifice.
+        </p>
+
+        <h3>Find Your "Debt Payoff Number"</h3>
+        <p>
+            Use this calculator to determine exactly how much extra you need to pay each month to become
+            debt-free by a target date. That specific number — say, $150 per month — is far more
+            actionable than a vague goal of "paying more." Build it into your budget as a fixed expense.
+        </p>
+
+        <h3>Automate Your Extra Payments</h3>
+        <p>
+            Set up an automatic transfer to your lender for your extra payment on payday. If it never
+            hits your checking account, you won't miss it — and your debt drops automatically every month.
+            Automation removes willpower from the equation.
+        </p>
+
+        <h3>Celebrate Milestones</h3>
+        <p>
+            Paying off a debt — even a small one — deserves acknowledgment. Review your amortization
+            schedule to identify upcoming milestones: the month your balance drops below $5,000,
+            the midpoint of your payoff timeline, or the day you make your very last payment.
+            Celebrating progress keeps motivation high for the long haul.
+        </p>
+
+        <h3>Avoid Adding New Debt</h3>
+        <p>
+            The most effective debt payoff strategy can be undermined by adding new balances while paying
+            off old ones. If credit cards are the culprit, consider freezing them (literally) or switching
+            to a cash or debit system while you work through your payoff plan.
+        </p>
+
+        <div class="divider"></div>
+
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+            <div class="faq-q">Why does paying the minimum take so long?</div>
+            <div class="faq-a">
+                When you carry a balance on a high-interest credit card, the minimum payment is often
+                calculated as just 1–2% of your balance or a small fixed amount. At a 20%+ APR,
+                most of that payment goes straight to interest — sometimes over 80% — leaving very
+                little to reduce your actual balance. On a $5,000 balance at 24.99% with a $100
+                minimum payment, it can take over 9 years to pay off. Add even $50 extra and that
+                shrinks to around 3 years.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">Should I pay off debt or build an emergency fund first?</div>
+            <div class="faq-a">
+                Most financial experts recommend building a small starter emergency fund — typically
+                $1,000 — before aggressively paying down debt. This prevents minor emergencies from
+                forcing you to run up more debt. Once you have that buffer, focus on paying down
+                high-interest debt. After you're debt-free, rebuild your emergency fund to 3–6 months
+                of living expenses.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">Does my credit score go up when I pay off debt?</div>
+            <div class="faq-a">
+                Yes, in most cases. Your <strong>credit utilization ratio</strong> — the percentage
+                of your available credit you're using — is one of the biggest factors in your score.
+                Paying down revolving debt (credit cards) typically improves your score fairly quickly.
+                Paying off installment loans (auto, student) also helps, though the effect may be
+                slightly smaller since those don't affect utilization.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">What if my minimum payment doesn't cover the interest?</div>
+            <div class="faq-a">
+                This is called a "negatively amortizing" loan — your balance actually grows each month
+                even when you make payments. The calculator will flag this with an error message.
+                If this is happening on a real debt, contact your lender immediately to restructure
+                the payment, or consider a balance transfer to a lower-rate card while you create a
+                payoff plan.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">What's the best way to use this calculator if I have many debts?</div>
+            <div class="faq-a">
+                Enter all your debts at once and run a baseline calculation with minimum payments only.
+                Note the total interest paid across all debts — this is your "cost of inaction."
+                Then, add your extra monthly budget to the highest-rate debt (Avalanche) or the
+                smallest balance (Snowball) and recalculate. Use the Export feature to save a copy
+                for each scenario and compare them side by side.
+            </div>
+        </div>
+
+    </section>
 </body>
 </html>
